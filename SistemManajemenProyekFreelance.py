@@ -139,3 +139,70 @@ class App:
             messagebox.showinfo("Sukses", "Proyek berhasil ditambahkan.")
         else:
             messagebox.showwarning("Peringatan", "Semua kolom harus diisi.")
+    def perbarui_project(self):
+        project_id = self.entry_project_id.get()
+        nama = self.entry_nama.get()
+        deskripsi = self.entry_deskripsi.get()
+        tanggal_mulai = self.entry_tanggal_mulai.get()
+        tanggal_selesai = self.entry_tanggal_selesai.get()
+        if self.manager.perbarui_project(project_id, nama, deskripsi, tanggal_mulai, tanggal_selesai):
+            self.clear_entries()
+            messagebox.showinfo("Sukses", "Proyek berhasil diperbarui.")
+        else:
+            messagebox.showwarning("Peringatan", "Proyek tidak ditemukan.")
+
+    def hapus_project(self):
+        project_id = self.entry_project_id.get()
+        if self.manager.hapus_project(project_id):
+            self.clear_entries()
+            messagebox.showinfo("Sukses", "Proyek berhasil dihapus.")
+        else:
+            messagebox.showwarning("Peringatan", "Proyek tidak ditemukan.")
+
+    def urutkan_projects(self):
+        self.manager.urutkan_projects_berdasarkan_nama()
+        messagebox.showinfo("Sukses", "Proyek diurutkan berdasarkan nama.")
+        self.daftar_projects()
+
+    def cari_project(self):
+        project_id = self.entry_project_id.get()
+        project = self.manager.cari_project_berdasarkan_id(project_id)
+        if project:
+            self.listbox.delete(0, tk.END)
+            self.listbox.insert(tk.END, f'ID: {project.project_id}, Nama: {project.nama}, Deskripsi: {project.deskripsi}, Tanggal Mulai: {project.tanggal_mulai}, Tanggal Selesai: {project.tanggal_selesai}')
+        else:
+            messagebox.showwarning("Peringatan", "Proyek tidak ditemukan.")
+
+    def daftar_projects(self):
+        self.listbox.delete(0, tk.END)
+        for project in self.manager.daftar_projects():
+            self.listbox.insert(tk.END, f'ID: {project.project_id}, Nama: {project.nama}, Deskripsi: {project.deskripsi}, Tanggal Mulai: {project.tanggal_mulai}, Tanggal Selesai: {project.tanggal_selesai}')
+
+    def import_csv(self):
+        file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+        if file_path:
+            try:
+                with open(file_path, mode='r', encoding='utf-8') as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        project = Project(row['ID Proyek'], row['Nama Proyek'], row['Deskripsi'], row['Tanggal Mulai'], row['Tanggal Selesai'])
+                        self.manager.tambah_project(project)
+                messagebox.showinfo("Sukses", "Proyek berhasil diimpor.")
+                self.daftar_projects()  # Refresh daftar proyek setelah impor
+            except Exception as e:
+                messagebox.showerror("Error", f"Gagal mengimpor proyek: {str(e)}")
+
+    def clear_entries(self):
+        self.entry_project_id.delete(0, tk.END)
+        self.entry_nama.delete(0, tk.END)
+        self.entry_deskripsi.delete(0, tk.END)
+        self.entry_tanggal_mulai.delete(0, tk.END)
+        self.entry_tanggal_selesai.delete(0, tk.END)
+
+def main():
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
